@@ -35,6 +35,7 @@ $wingetOk = $null -ne (Get-Command winget -ErrorAction SilentlyContinue)
 $logoUrl  = "https://raw.githubusercontent.com/syscodi7/Tools/main/sis.png"
 $logoPath = "$env:TEMP\syscodi_logo.png"
 try { Invoke-WebRequest -Uri $logoUrl -OutFile $logoPath -ErrorAction Stop } catch { $logoPath = $null }
+if (-not $logoPath) { $logoPath = $null }
 
 # ============================================================
 #   COLORES CORPORATIVOS
@@ -478,8 +479,10 @@ if (-not $wingetOk) {
 }
 
 $scroll = New-Object Windows.Forms.Panel
-$scroll.Location = New-Object Drawing.Point(0, if ($wingetOk) {0} else {35})
-$scroll.Size = New-Object Drawing.Size(740, if ($wingetOk) {455} else {420})
+$scrollY = if ($wingetOk) { 0 } else { 35 }
+$scrollH = if ($wingetOk) { 455 } else { 420 }
+$scroll.Location = New-Object Drawing.Point(0, $scrollY)
+$scroll.Size = New-Object Drawing.Size(740, $scrollH)
 $scroll.AutoScroll = $true
 $scroll.BackColor = $cBg
 $tabApps.Controls.Add($scroll)
