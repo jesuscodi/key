@@ -621,8 +621,8 @@ else:
 })
 $pnlZip.Controls.Add($btnUnzipPass)
 
-# ── ACTIVACIÓN WINDOWS ────────────────────────────────────
-$pnlActivar = New-UtilPanel "Activacion de Windows / Office" "Ejecuta el script de activacion MAS (Microsoft Activation Scripts) desde get.activated.win" $tabUtils 440 120
+# ── ACTIVACIÓN WINDOWS / OFFICE ───────────────────────────
+$pnlActivar = New-UtilPanel "Activacion de Windows / Office" "Selecciona el producto a activar usando MAS (Microsoft Activation Scripts) - get.activated.win" $tabUtils 440 260
 
 $lblActivarInfo = New-Object Windows.Forms.Label
 $lblActivarInfo.Text = "Fuente: https://get.activated.win  |  Proyecto de codigo abierto MAS"
@@ -632,22 +632,87 @@ $lblActivarInfo.ForeColor = [Drawing.Color]::FromArgb(160, 200, 255)
 $lblActivarInfo.Font = New-Object Drawing.Font("Consolas", 7)
 $pnlActivar.Controls.Add($lblActivarInfo)
 
-$btnActivar = New-CorporateButton "  Activar Windows / Office" 10 75 220 32
+# --- Label sección Windows ---
+$lblSecWin = New-Object Windows.Forms.Label
+$lblSecWin.Text = "  Windows"
+$lblSecWin.Location = New-Object Drawing.Point(10, 78)
+$lblSecWin.Size = New-Object Drawing.Size(200, 18)
+$lblSecWin.ForeColor = [Drawing.Color]::FromArgb(0, 180, 255)
+$lblSecWin.Font = New-Object Drawing.Font("Segoe UI", 8, [Drawing.FontStyle]::Bold)
+$pnlActivar.Controls.Add($lblSecWin)
+
+# Checkboxes Windows
+$winVersions = @("Windows 7","Windows 8.1","Windows 10","Windows 11","Windows Server 2016","Windows Server 2019","Windows Server 2022")
+$cbWin = @()
+$xW = 10; $yW = 98
+foreach ($ver in $winVersions) {
+    $cb = New-Object Windows.Forms.CheckBox
+    $cb.Text = $ver
+    $cb.Location = New-Object Drawing.Point($xW, $yW)
+    $cb.Size = New-Object Drawing.Size(160, 20)
+    $cb.ForeColor = [Drawing.Color]::White
+    $cb.BackColor = [Drawing.Color]::FromArgb(22, 38, 75)
+    $cb.Font = New-Object Drawing.Font("Segoe UI", 8)
+    $pnlActivar.Controls.Add($cb)
+    $cbWin += $cb
+    $xW += 162
+    if ($xW -gt 490) { $xW = 10; $yW += 22 }
+}
+
+# --- Label sección Office ---
+$lblSecOff = New-Object Windows.Forms.Label
+$lblSecOff.Text = "  Office"
+$lblSecOff.Location = New-Object Drawing.Point(10, 148)
+$lblSecOff.Size = New-Object Drawing.Size(200, 18)
+$lblSecOff.ForeColor = [Drawing.Color]::FromArgb(0, 180, 255)
+$lblSecOff.Font = New-Object Drawing.Font("Segoe UI", 8, [Drawing.FontStyle]::Bold)
+$pnlActivar.Controls.Add($lblSecOff)
+
+# Checkboxes Office
+$offVersions = @("Office 2013","Office 2016","Office 2019","Office 2021","Office 2024","Microsoft 365")
+$cbOff = @()
+$xO = 10; $yO = 168
+foreach ($ver in $offVersions) {
+    $cb = New-Object Windows.Forms.CheckBox
+    $cb.Text = $ver
+    $cb.Location = New-Object Drawing.Point($xO, $yO)
+    $cb.Size = New-Object Drawing.Size(160, 20)
+    $cb.ForeColor = [Drawing.Color]::FromArgb(0, 220, 140)
+    $cb.BackColor = [Drawing.Color]::FromArgb(22, 38, 75)
+    $cb.Font = New-Object Drawing.Font("Segoe UI", 8)
+    $pnlActivar.Controls.Add($cb)
+    $cbOff += $cb
+    $xO += 162
+    if ($xO -gt 490) { $xO = 10; $yO += 22 }
+}
+
+# --- Botón Activar ---
+$btnActivar = New-CorporateButton "  Activar Seleccionados" 10 215 200 32
 $btnActivar.BackColor = [Drawing.Color]::FromArgb(0, 130, 60)
 $btnActivar.FlatAppearance.BorderColor = [Drawing.Color]::FromArgb(0, 200, 80)
 $btnActivar.Add_Click({
+    $selWin = $cbWin | Where-Object { $_.Checked } | ForEach-Object { $_.Text }
+    $selOff = $cbOff | Where-Object { $_.Checked } | ForEach-Object { $_.Text }
+    $selTodos = @($selWin) + @($selOff)
+    if ($selTodos.Count -eq 0) {
+        Write-Out " Selecciona al menos un producto para activar." ([Drawing.Color]::Yellow)
+        return
+    }
+    $listaStr = ($selTodos | ForEach-Object { "  - $_" }) -join "`n"
     $confirm = [Windows.Forms.MessageBox]::Show(
-        "Se ejecutara el script MAS (Microsoft Activation Scripts) desde internet.`n`nComando: irm https://get.activated.win | iex`n`nAsegurate de tener conexion a internet y ejecutar como Administrador.`n`n¿Deseas continuar?",
+        "Se activaran los siguientes productos usando MAS:`n`n$listaStr`n`nComando: irm https://get.activated.win | iex`n`nAsegurate de tener conexion a internet y ejecutar como Administrador.`n`n¿Deseas continuar?",
         "Confirmacion - Activacion",
         [Windows.Forms.MessageBoxButtons]::YesNo,
         [Windows.Forms.MessageBoxIcon]::Warning
     )
     if ($confirm -eq [Windows.Forms.DialogResult]::Yes) {
-        Write-Out "Iniciando activacion de Windows / Office..." $cSubText
+        foreach ($prod in $selTodos) {
+            Write-Out " Activando: $prod ..." $cSubText
+        }
         Write-Out "Ejecutando: irm https://get.activated.win | iex" $cSubText
         try {
             Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"" -Verb RunAs
-            Write-Out " Script de activacion lanzado. Sigue las instrucciones en la ventana de PowerShell." ([Drawing.Color]::LightGreen)
+            Write-Out " Script MAS lanzado. Sigue las instrucciones en la ventana de PowerShell." ([Drawing.Color]::LightGreen)
         } catch {
             Write-Out " Error al lanzar el script: $_" ([Drawing.Color]::Salmon)
         }
@@ -658,9 +723,9 @@ $btnActivar.Add_Click({
 $pnlActivar.Controls.Add($btnActivar)
 
 $lblActivarNota = New-Object Windows.Forms.Label
-$lblActivarNota.Text = "  Requiere conexion a internet y privilegios de Administrador"
-$lblActivarNota.Location = New-Object Drawing.Point(240, 82)
-$lblActivarNota.Size = New-Object Drawing.Size(430, 18)
+$lblActivarNota.Text = "  Requiere internet y privilegios de Administrador  |  Blanco = Windows   Verde = Office"
+$lblActivarNota.Location = New-Object Drawing.Point(220, 222)
+$lblActivarNota.Size = New-Object Drawing.Size(460, 18)
 $lblActivarNota.ForeColor = [Drawing.Color]::FromArgb(200, 200, 100)
 $lblActivarNota.Font = New-Object Drawing.Font("Segoe UI", 7, [Drawing.FontStyle]::Italic)
 $pnlActivar.Controls.Add($lblActivarNota)
