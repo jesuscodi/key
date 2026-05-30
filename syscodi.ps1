@@ -422,12 +422,19 @@ function Install-MsOffCrypto {
     }
 }
 
+$utilScroll = New-Object Windows.Forms.Panel
+$utilScroll.Location = New-Object Drawing.Point(0, 0)
+$utilScroll.Size = New-Object Drawing.Size(720, 515)
+$utilScroll.AutoScroll = $true
+$utilScroll.BackColor = $cBg
+$tabUtils.Controls.Add($utilScroll)
+
 function New-UtilPanel($titulo, $subtitulo, $parent, $y, $h=120) {
     $pnl = New-Object Windows.Forms.Panel
     $pnl.Location = New-Object Drawing.Point(8, $y)
     $pnl.Size = New-Object Drawing.Size(690, $h)
     $pnl.BackColor = [Drawing.Color]::FromArgb(22, 38, 75)
-    $parent.Controls.Add($pnl)
+    $utilScroll.Controls.Add($pnl)
     $lbl = New-Object Windows.Forms.Label
     $lbl.Text = $titulo
     $lbl.Location = New-Object Drawing.Point(10, 8)
